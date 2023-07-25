@@ -8,6 +8,3 @@ $cutefetch->script("
 
 $cutefetch->dispatch();
 ?>
-<Script>
-    
-</Script>

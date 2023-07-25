@@ -23,29 +23,25 @@ class cutefetch {
 
     }
 
-    fetch(element) {
+    fetch(url, data = '') {
         const self = this;
-        const href_url = element.getAttribute('x_href');
-        const cutefetch_url = element.getAttribute('cutefetch');
-        const createCORSRequest = function (method, cutefetch_url) {
+        const createCORSRequest = function (method, url) {
             const xhr = new XMLHttpRequest();
             if ('withCredentials' in xhr) {
-                xhr.open(method, cutefetch_url, true);
+                xhr.open(method, url, true);
             } else if (typeof XDomainRequest != 'undefined') {
                 xhr = new XDomainRequest();
-                xhr.open(method, cutefetch_url, true);
+                xhr.open(method, url, true);
             } else {
                 xhr = null;
             }
             return xhr;
         };
 
-        const method = 'GET';
-        const xhr = createCORSRequest(method, cutefetch_url);
+        const method = 'POST';
+        const xhr = createCORSRequest(method, url);
 
         xhr.onload = function () {
-            history.pushState({ url: href_url }, '', href_url);
-            self.windowStates.push(href_url);
             const buffer = JSON.parse(xhr.responseText);
             self.process(buffer);
         };
@@ -54,19 +50,43 @@ class cutefetch {
             console.error('Error in loading request.');
         };
 
-        xhr.send();
+        xhr.send(data);
+    }
+
+    href(element) {
+        const self = this;
+        const cutefetch = element.getAttribute('cutefetch');
+        self.fetch(cutefetch);
+    }
+
+    form(element) {
+        const self = this;
+        const cutefetch = element.getAttribute('cutefetch');
+        const data = new FormData(element);
+        element.setAttribute('action', '');
+        element.setAttribute('method', 'POST');
+        self.fetch(cutefetch, data);
     }
 
     refresh() {
         const self = this;
-        const elements = document.querySelectorAll('a[cutefetch]');
+        var elements;
         var element;
+
+        elements = document.querySelectorAll('a[cutefetch]');
         for (var i = 0; i < elements.length; i++) {
             element = elements[i];
-            element.setAttribute('x_href', element.getAttribute('href'));
             element.setAttribute('href', '#');
-            element.setAttribute('onClick', 'cutefetch.fetch(this);return false;');
+            element.setAttribute('onClick', 'cutefetch.href(this);return false;');
         }
+
+        elements = document.querySelectorAll('form[cutefetch]');
+        for (var i = 0; i < elements.length; i++) {
+            element = elements[i];
+            element.setAttribute('action', '');
+            element.setAttribute('onSubmit', 'cutefetch.form(this);return false;');
+        }
+
     }
 
     process(buffer) {
@@ -85,3 +105,10 @@ class cutefetch {
         self.refresh();
     }
 }
+
+
+/*
+            history.pushState({ url: href_url }, '', href_url);
+            self.windowStates.push(href_url);
+
+*/
